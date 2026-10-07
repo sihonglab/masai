@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Masai Lab</title>
+<meta name="description" content="Masai Lab builds efficient, safe, and resilient multi-agent AI systems, grounded in VLM, LLM, and reinforcement learning." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafbfc;
+    --bg-elev: #ffffff;
+    --bg-soft: #f3f5f8;
+    --border: #e3e7ee;
+    --border-strong: #c9d0dc;
+    --text: #0d1220;
+    --text-muted: #4b5468;
+    --text-dim: #7a8294;
+    --accent: #0b9f72;
+    --accent-2: #2e62d6;
+    --accent-warm: #c67b1a;
+    --danger: #d93b63;
+    --grid: rgba(0,0,0,0.045);
+    --glow: 0 0 60px rgba(11, 159, 114, 0.08);
+    --radius: 14px;
+    --maxw: 1180px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #07080b;
+      --bg-elev: #0d0f14;
+      --bg-soft: #11141c;
+      --border: #1c2130;
+      --border-strong: #2a3144;
+      --text: #e7ebf3;
+      --text-muted: #8a93a6;
+      --text-dim: #5a6377;
+      --accent: #7cf0c6;
+      --accent-2: #6aa0ff;
+      --accent-warm: #ffb86b;
+      --danger: #ff6b8a;
+      --grid: rgba(255,255,255,0.035);
+      --glow: 0 0 60px rgba(124, 240, 198, 0.08);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #07080b;
+    --bg-elev: #0d0f14;
+    --bg-soft: #11141c;
+    --border: #1c2130;
+    --border-strong: #2a3144;
+    --text: #e7ebf3;
+    --text-muted: #8a93a6;
+    --text-dim: #5a6377;
+    --accent: #7cf0c6;
+    --accent-2: #6aa0ff;
+    --accent-warm: #ffb86b;
+    --danger: #ff6b8a;
+    --grid: rgba(255,255,255,0.035);
+    --glow: 0 0 60px rgba(124, 240, 198, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, Segoe UI, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SF Mono, Menlo, monospace; }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--accent); }
+
+  .container {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- NAV ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: color-mix(in oklab, var(--bg) 72%, transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-row {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    position: relative; display: grid; place-items: center;
+    box-shadow: var(--glow);
+  }
+  .brand-mark::before, .brand-mark::after {
+    content: ""; position: absolute;
+    background: var(--bg);
+  }
+  .brand-mark::before { width: 10px; height: 2px; }
+  .brand-mark::after { width: 2px; height: 10px; }
+  .brand-name { font-size: 15.5px; }
+  .brand-name .dot { color: var(--accent); }
+
+  .nav-links { display: flex; align-items: center; gap: 26px; }
+  .nav-links a { font-size: 13.5px; color: var(--text-muted); transition: color .15s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 13px;
+    border: 1px solid var(--border-strong);
+    padding: 7px 13px; border-radius: 8px;
+    color: var(--text);
+    transition: all .15s;
+  }
+  .nav-cta:hover { border-color: var(--accent); color: var(--accent); background: color-mix(in oklab, var(--accent) 8%, transparent); }
+
+  .lang-toggle {
+    display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    font-size: 12px;
+  }
+  .lang-toggle button {
+    background: transparent; color: var(--text-muted);
+    border: 0; padding: 6px 10px; cursor: pointer;
+    font-family: inherit; font-weight: 500;
+    transition: all .15s;
+  }
+  .lang-toggle button.active { background: var(--bg-soft); color: var(--text); }
+  .lang-toggle button:hover { color: var(--text); }
+
+  .theme-btn {
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    width: 32px; height: 32px; cursor: pointer; color: var(--text-muted);
+    display: inline-grid; place-items: center;
+    transition: all .15s;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+  .mobile-only { display: none; }
+  @media (max-width: 760px) {
+    .desktop-only { display: none; }
+    .mobile-only { display: inline-flex; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    padding: 90px 0 70px;
+    overflow: hidden;
+  }
+  .hero-grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-glow {
+    position: absolute;
+    top: -200px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 600px;
+    background: radial-gradient(ellipse at center, color-mix(in oklab, var(--accent) 18%, transparent) 0%, transparent 60%);
+    pointer-events: none;
+    filter: blur(40px);
+  }
+  .hero-inner { position: relative; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    border-radius: 999px;
+    font-size: 12px; color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+  .eyebrow .pulse {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 50%, transparent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent); }
+    70% { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  h1.hero-title {
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1.03;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    margin: 22px 0 20px;
+    max-width: 18ch;
+  }
+  .hero-title .accent {
+    background: linear-gradient(100deg, var(--accent) 20%, var(--accent-2) 80%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-sub {
+    font-size: clamp(16px, 1.5vw, 19px);
+    color: var(--text-muted);
+    max-width: 62ch;
+    margin: 0 0 36px;
+  }
+
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; border: 1px solid transparent;
+    transition: all .18s ease;
+  }
+  .btn-primary {
+    background: var(--text); color: var(--bg);
+  }
+  .btn-primary:hover { background: var(--accent); color: #06130e; }
+  .btn-ghost {
+    border-color: var(--border-strong); color: var(--text);
+    background: transparent;
+  }
+  .btn-ghost:hover { border-color: var(--text); color: var(--accent); background: color-mix(in oklab, var(--accent) 8%, transparent); }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* Marquee: trusted-by / tags */
+  .hero-meta {
+    margin-top: 56px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    color: var(--text-dim);
+    font-size: 12.5px;
+  }
+  .hero-meta .mono { color: var(--text-muted); }
+
+  /* ---------- SECTIONS ---------- */
+  section { padding: 90px 0; position: relative; }
+  .section-head { margin-bottom: 50px; max-width: 760px; }
+  .section-label {
+    font-size: 12px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+  h2 {
+    font-size: clamp(28px, 3.4vw, 42px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    margin: 0 0 16px;
+  }
+  .section-sub { color: var(--text-muted); font-size: 17px; max-width: 60ch; }
+
+  /* ---------- PILLARS ---------- */
+  .pillars {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  }
+  @media (max-width: 860px) { .pillars { grid-template-columns: 1fr; } }
+
+  .pillar {
+    position: relative;
+    padding: 28px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all .25s ease;
+  }
+  .pillar:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .pillar::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--accent); opacity: 0.6;
+  }
+  .pillar.p2::before { background: var(--accent-2); }
+  .pillar.p3::before { background: var(--accent-warm); }
+  .pillar-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--bg-soft); border: 1px solid var(--border);
+    display: grid; place-items: center; margin-bottom: 20px;
+    color: var(--accent);
+  }
+  .pillar.p2 .pillar-icon { color: var(--accent-2); }
+  .pillar.p3 .pillar-icon { color: var(--accent-warm); }
+  .pillar-icon svg { width: 20px; height: 20px; }
+  .pillar h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.01em; font-weight: 600; }
+  .pillar p { margin: 0; color: var(--text-muted); font-size: 14.5px; }
+  .pillar-metric {
+    margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border);
+    font-size: 12.5px; color: var(--text-dim);
+    display: flex; justify-content: space-between;
+  }
+  .pillar-metric .val { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- STACK DIAGRAM ---------- */
+  .stack-wrap {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 900px) { .stack-wrap { grid-template-columns: 1fr; } }
+
+  .stack-visual {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    position: relative;
+  }
+  .stack-visual::after {
+    content: "";
+    position: absolute; inset: -1px;
+    border-radius: var(--radius);
+    background: radial-gradient(ellipse at top left, color-mix(in oklab, var(--accent) 20%, transparent), transparent 60%);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .stack-layer {
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: var(--bg-soft);
+    font-size: 13.5px;
+    transition: all .2s;
+  }
+  .stack-layer:hover { border-color: var(--accent); transform: translateX(4px); }
+  .stack-layer .layer-name { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+  .stack-layer .layer-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    padding: 3px 8px; border-radius: 5px; background: var(--bg);
+    border: 1px solid var(--border);
+  }
+  .stack-layer .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .stack-layer:nth-child(1) .dot { background: var(--accent); }
+  .stack-layer:nth-child(2) .dot { background: var(--accent-2); }
+  .stack-layer:nth-child(3) .dot { background: var(--accent-warm); }
+  .stack-layer:nth-child(4) .dot { background: var(--danger); }
+
+  .stack-caption {
+    text-align: center; color: var(--text-dim); font-size: 12px;
+    margin-top: 18px; font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stack-text ul { list-style: none; padding: 0; margin: 20px 0 0; }
+  .stack-text li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    color: var(--text-muted); font-size: 14.5px;
+  }
+  .stack-text li:last-child { border-bottom: 0; }
+  .stack-text li .mark {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 5px;
+    background: color-mix(in oklab, var(--accent) 15%, transparent);
+    color: var(--accent);
+    display: grid; place-items: center; margin-top: 2px;
+    font-size: 11px;
+  }
+  .stack-text li b { color: var(--text); font-weight: 500; }
+
+  /* ---------- RESEARCH ---------- */
+  .research {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  }
+  @media (max-width: 760px) { .research { grid-template-columns: 1fr; } }
+
+  .r-card {
+    padding: 24px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all .2s;
+  }
+  .r-card:hover { border-color: var(--accent); }
+  .r-card .tag {
+    display: inline-block; font-size: 11px; padding: 3px 9px;
+    border-radius: 999px; background: color-mix(in oklab, var(--accent-2) 15%, transparent);
+    color: var(--accent-2); font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em; margin-bottom: 14px;
+  }
+  .r-card.tag-safety .tag { background: color-mix(in oklab, var(--danger) 15%, transparent); color: var(--danger); }
+  .r-card.tag-rl .tag { background: color-mix(in oklab, var(--accent-warm) 15%, transparent); color: var(--accent-warm); }
+  .r-card.tag-infra .tag { background: color-mix(in oklab, var(--accent) 15%, transparent); color: var(--accent); }
+  .r-card h4 { margin: 0 0 10px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .r-card p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+  /* ---------- CTA band ---------- */
+  .cta-band {
+    position: relative;
+    padding: 70px 0;
+    text-align: center;
+    overflow: hidden;
+  }
+  .cta-band::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, color-mix(in oklab, var(--accent) 15%, transparent), transparent 60%);
+    pointer-events: none;
+  }
+  .cta-band h2 { max-width: 20ch; margin-left: auto; margin-right: auto; }
+  .cta-band p { color: var(--text-muted); max-width: 50ch; margin: 0 auto 28px; }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 50px 0 36px;
+    color: var(--text-dim);
+    font-size: 13.5px;
+  }
+  .footer-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+  .footer-brand { display: flex; align-items: center; gap: 10px; color: var(--text); }
+  .footer-links { display: flex; gap: 22px; }
+  .footer-links a { color: var(--text-muted); }
+  .footer-bottom {
+    margin-top: 36px; padding-top: 20px; border-top: 1px dashed var(--border);
+    display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .footer-bottom .mono { color: var(--text-dim); }
+
+  /* ---------- i18n ---------- */
+  html[lang="zh"] body { font-family: 'Noto Sans SC', 'Inter', system-ui, sans-serif; }
+  html[lang="zh"] h1.hero-title { letter-spacing: 0; }
+  [data-i18n-zh] { display: none; }
+  html[lang="zh"] [data-i18n-en] { display: none; }
+  html[lang="zh"] [data-i18n-zh] { display: inline; }
+  html[lang="zh"] p[data-i18n-zh], html[lang="zh"] h1[data-i18n-zh], html[lang="zh"] h2[data-i18n-zh], html[lang="zh"] h3[data-i18n-zh], html[lang="zh"] h4[data-i18n-zh] { display: block; }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-row">
+    <a href="#" class="brand" aria-label="Masai Lab home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">masai<span class="dot">.</span>lab</span>
+    </a>
+    <div class="nav-links desktop-only">
+      <a href="#pillars" data-i18n-en>Approach</a><a href="#pillars" data-i18n-zh>核心</a>
+      <a href="#stack" data-i18n-en>Stack</a><a href="#stack" data-i18n-zh>技术栈</a>
+      <a href="#research" data-i18n-en>Research</a><a href="#research" data-i18n-zh>研究</a>
+      <a href="#contact" data-i18n-en>Contact</a><a href="#contact" data-i18n-zh>联系</a>
+    </div>
+    <div class="nav-links" style="gap: 10px;">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button id="lang-en" class="active" type="button">EN</button>
+        <button id="lang-zh" type="button">中文</button>
+      </div>
+      <button class="theme-btn" id="theme-btn" aria-label="Toggle theme" title="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="#contact" class="nav-cta desktop-only" data-i18n-en>Get in touch</a>
+      <a href="#contact" class="nav-cta desktop-only" data-i18n-zh>联系我们</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="container hero-inner">
+    <span class="eyebrow">
+      <span class="pulse"></span>
+      <span class="mono" data-i18n-en>Multi-Agent Systems · Research &amp; Platform</span>
+      <span class="mono" data-i18n-zh>多智能体系统 · 研究 &amp; 平台</span>
+    </span>
+
+    <h1 class="hero-title">
+      <span data-i18n-en>Multi-agent AI that is <span class="accent">efficient, safe, and resilient</span>.</span>
+      <span data-i18n-zh>构建<span class="accent">高效、安全、韧性</span>的多智能体 AI 系统。</span>
+    </h1>
+
+    <p class="hero-sub">
+      <span data-i18n-en>Masai Lab builds the next generation of multi-agent systems — grounded in vision-language models, large language models, and reinforcement learning. We turn single-model intelligence into coordinated populations of agents that reliably ship work in the real world.</span>
+      <span data-i18n-zh>Masai Lab 致力于下一代多智能体系统（MAS）——以视觉语言模型（VLM）、大语言模型（LLM）与强化学习（RL）为基础，把单模型的智能，转化为可在真实世界中协同、可靠交付的智能体群体。</span>
+    </p>
+
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#contact">
+        <span data-i18n-en>Partner with us</span>
+        <span data-i18n-zh>与我们合作</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+      <a class="btn btn-ghost" href="#research">
+        <span data-i18n-en>See research</span>
+        <span data-i18n-zh>浏览研究</span>
+      </a>
+    </div>
+
+    <div class="hero-meta">
+      <span class="mono">// focus areas</span>
+      <span data-i18n-en>Agent coordination</span><span data-i18n-zh>多体协同</span>
+      <span>·</span>
+      <span data-i18n-en>Policy safety</span><span data-i18n-zh>策略安全</span>
+      <span>·</span>
+      <span data-i18n-en>Fault-tolerant orchestration</span><span data-i18n-zh>容错调度</span>
+      <span>·</span>
+      <span data-i18n-en>VLM-grounded planning</span><span data-i18n-zh>视觉语言规划</span>
+    </div>
+  </div>
+</header>
+
+<!-- PILLARS -->
+<section id="pillars">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-label" data-i18n-en>Our approach</div>
+      <div class="section-label" data-i18n-zh>核心理念</div>
+      <h2>
+        <span data-i18n-en>Three properties, treated as first-class.</span>
+        <span data-i18n-zh>三项性质，皆为一等公民。</span>
+      </h2>
+      <p class="section-sub">
+        <span data-i18n-en>MAS fail in ways single agents don't: cascading errors, policy drift, and runaway coordination. We design against all three from day one.</span>
+        <span data-i18n-zh>多智能体系统的失败模式与单体不同：级联错误、策略漂移、协同失控。我们从第一天就针对这三点进行设计。</span>
+      </p>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar p1 reveal">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+        </div>
+        <h3 data-i18n-en>Efficient</h3>
+        <h3 data-i18n-zh>高效</h3>
+        <p data-i18n-en>Compact agent graphs, routed inference, and learned coordination protocols that cut tokens, latency, and dollars without losing capability.</p>
+        <p data-i18n-zh>紧凑的智能体图、路由化推理与可学习的协同协议，在不损失能力的前提下，降低 token、延迟与成本。</p>
+        <div class="pillar-metric">
+          <span data-i18n-en>Token / task</span><span data-i18n-zh>单任务 token</span>
+          <span class="val">↓ 3–8×</span>
+        </div>
+      </div>
+
+      <div class="pillar p2 reveal">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/></svg>
+        </div>
+        <h3 data-i18n-en>Safe</h3>
+        <h3 data-i18n-zh>安全</h3>
+        <p data-i18n-en>Formal action boundaries, policy verification, and red-teamed sandboxes — so an agent, or a group of them, never crosses lines you didn't draw.</p>
+        <p data-i18n-zh>形式化的动作边界、策略验证与红队沙箱——确保单个或一群智能体，永远不会越过你未划定的红线。</p>
+        <div class="pillar-metric">
+          <span data-i18n-en>Policy violation</span><span data-i18n-zh>策略违规率</span>
+          <span class="val">&lt; 0.1%</span>
+        </div>
+      </div>
+
+      <div class="pillar p3 reveal">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0116 0M4 12l3-3M4 12l3 3M20 12l-3-3M20 12l-3 3"/></svg>
+        </div>
+        <h3 data-i18n-en>Resilient</h3>
+        <h3 data-i18n-zh>韧性</h3>
+        <p data-i18n-en>Agents degrade gracefully, recover from tool outages, and survive adversarial inputs — stress-tested on failure injection, not just benchmarks.</p>
+        <p data-i18n-zh>智能体可优雅降级，从工具故障中恢复，并抵御对抗性输入——以故障注入进行压力测试，而非仅跑分。</p>
+        <div class="pillar-metric">
+          <span data-i18n-en>Recovery rate</span><span data-i18n-zh>故障恢复率</span>
+          <span class="val">&gt; 95%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section id="stack" style="background: linear-gradient(180deg, transparent 0%, var(--bg-soft) 20%, var(--bg-soft) 80%, transparent 100%);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-label" data-i18n-en>The stack</div>
+      <div class="section-label" data-i18n-zh>技术栈</div>
+      <h2>
+        <span data-i18n-en>VLM &middot; LLM &middot; RL — composed into agents that act.</span>
+        <span data-i18n-zh>VLM · LLM · RL —— 复合为能够行动的智能体。</span>
+      </h2>
+    </div>
+
+    <div class="stack-wrap">
+      <div class="stack-visual reveal">
+        <div class="stack-layer">
+          <span class="layer-name"><span class="dot"></span>
+            <span data-i18n-en>Orchestration &amp; Memory</span>
+            <span data-i18n-zh>编排与记忆</span>
+          </span>
+          <span class="layer-tag">graph · scheduler</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name"><span class="dot"></span>
+            <span data-i18n-en>Reasoning · LLM</span>
+            <span data-i18n-zh>推理 · LLM</span>
+          </span>
+          <span class="layer-tag">plan · tool-use</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name"><span class="dot"></span>
+            <span data-i18n-en>Perception · VLM</span>
+            <span data-i18n-zh>感知 · VLM</span>
+          </span>
+          <span class="layer-tag">ground · verify</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name"><span class="dot"></span>
+            <span data-i18n-en>Policy learning · RL</span>
+            <span data-i18n-zh>策略学习 · RL</span>
+          </span>
+          <span class="layer-tag">reward · self-play</span>
+        </div>
+        <div class="stack-caption">// agents = perception × reasoning × policy, composed</div>
+      </div>
+
+      <div class="stack-text reveal">
+        <p style="color: var(--text-muted); margin: 0;">
+          <span data-i18n-en>Our platform treats models not as endpoints but as components. Each agent carries a specific perception surface, a reasoning policy, and a learnable coordination role — orchestrated through typed messages and verifiable traces.</span>
+          <span data-i18n-zh>在我们的平台中，模型不是终点，而是组件。每一个智能体都有专属的感知面、推理策略与可学习的协同角色——通过类型化消息与可验证轨迹进行编排。</span>
+        </p>
+        <ul>
+          <li>
+            <span class="mark">V</span>
+            <span>
+              <b data-i18n-en>VLM — grounding, not just vision.</b>
+              <b data-i18n-zh>VLM —— 落地感知，而非仅视觉。</b>
+              <span data-i18n-en> We use vision-language models to ground actions in the real environment and to verify what the LLM "thinks" it did.</span>
+              <span data-i18n-zh> 使用视觉语言模型把动作落到真实环境，并校验 LLM "以为"自己做了什么。</span>
+            </span>
+          </li>
+          <li>
+            <span class="mark">L</span>
+            <span>
+              <b data-i18n-en>LLM — planners and critics.</b>
+              <b data-i18n-zh>LLM —— 规划者与批判者。</b>
+              <span data-i18n-en> Specialized planner, worker, and critic agents operate on structured task graphs, not freeform dialogs.</span>
+              <span data-i18n-zh> 规划、执行、批判等专用智能体，作用于结构化任务图，而非自由对话。</span>
+            </span>
+          </li>
+          <li>
+            <span class="mark">R</span>
+            <span>
+              <b data-i18n-en>RL — coordination learned, not scripted.</b>
+              <b data-i18n-zh>RL —— 协同是学来的，不是写死的。</b>
+              <span data-i18n-en> Reinforcement learning tunes multi-agent policies against task reward, safety constraints, and cost budgets.</span>
+              <span data-i18n-zh> 以强化学习，联合优化任务奖励、安全约束与成本预算下的多体策略。</span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="research">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-label" data-i18n-en>Research directions</div>
+      <div class="section-label" data-i18n-zh>研究方向</div>
+      <h2>
+        <span data-i18n-en>Open problems we work on.</span>
+        <span data-i18n-zh>我们正在攻关的开放问题。</span>
+      </h2>
+    </div>
+
+    <div class="research">
+      <div class="r-card tag-infra reveal">
+        <span class="tag">01 · Coordination</span>
+        <h4 data-i18n-en>Learned agent protocols</h4>
+        <h4 data-i18n-zh>可学习的智能体协议</h4>
+        <p data-i18n-en>Beyond prompt-stitching: emergent, compressed message formats learned under coordination reward, measurably reducing token overhead between agents.</p>
+        <p data-i18n-zh>超越提示拼接：在协同奖励下涌现的、可被压缩的消息格式，显著降低智能体之间的 token 开销。</p>
+      </div>
+
+      <div class="r-card tag-safety reveal">
+        <span class="tag">02 · Safety</span>
+        <h4 data-i18n-en>Multi-agent policy verification</h4>
+        <h4 data-i18n-zh>多体策略验证</h4>
+        <p data-i18n-en>Formal and empirical techniques to bound what a group of agents can do, including collusion-style failures that no single agent could cause.</p>
+        <p data-i18n-zh>以形式化与经验方法，界定一群智能体的行为边界，涵盖单体无法制造的"共谋式"失败。</p>
+      </div>
+
+      <div class="r-card tag-rl reveal">
+        <span class="tag">03 · Policy</span>
+        <h4 data-i18n-en>RL on language-grounded agents</h4>
+        <h4 data-i18n-zh>语言落地智能体的 RL</h4>
+        <p data-i18n-en>Fine-tuning LLM/VLM-based agents with offline and on-policy RL under tight reward budgets, without catastrophic capability loss.</p>
+        <p data-i18n-zh>在严格奖励预算下，对基于 LLM/VLM 的智能体进行离线与在线 RL 微调，且避免能力的灾难性遗忘。</p>
+      </div>
+
+      <div class="r-card tag-infra reveal">
+        <span class="tag">04 · Resilience</span>
+        <h4 data-i18n-en>Failure-aware orchestration</h4>
+        <h4 data-i18n-zh>故障感知的编排</h4>
+        <p data-i18n-en>Scheduling that explicitly models tool outages, model fallback, and adversarial inputs — so agent groups degrade gracefully instead of silently.</p>
+        <p data-i18n-zh>显式建模工具中断、模型回退与对抗输入的调度，使智能体群优雅降级，而非悄然失效。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band" id="contact">
+  <div class="container reveal">
+    <h2>
+      <span data-i18n-en>Building MAS in production? Let&rsquo;s talk.</span>
+      <span data-i18n-zh>正在把 MAS 推向生产？来聊聊。</span>
+    </h2>
+    <p>
+      <span data-i18n-en>Masai Lab partners with research teams, infrastructure teams, and startups shipping agents into the real world. We take a small number of serious collaborations each quarter.</span>
+      <span data-i18n-zh>Masai Lab 与研究团队、基础设施团队，以及将智能体推向真实世界的创业公司合作。每季度我们只接受少数认真的合作。</span>
+    </p>
+    <a class="btn btn-primary" href="mailto:hello@masailab.org">
+      hello@masailab.org
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <div>
+        <div class="footer-brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">masai<span style="color: var(--accent)">.</span>lab</span>
+        </div>
+        <p style="margin: 10px 0 0; max-width: 42ch;">
+          <span data-i18n-en>Multi-agent systems research &amp; platform. Efficient, safe, resilient — by design.</span>
+          <span data-i18n-zh>多智能体系统研究与平台。高效、安全、韧性——设计使然。</span>
+        </p>
+      </div>
+      <div class="footer-links">
+        <a href="#pillars" data-i18n-en>Approach</a><a href="#pillars" data-i18n-zh>核心</a>
+        <a href="#stack" data-i18n-en>Stack</a><a href="#stack" data-i18n-zh>技术栈</a>
+        <a href="#research" data-i18n-en>Research</a><a href="#research" data-i18n-zh>研究</a>
+        <a href="mailto:hello@masailab.org">Email</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="mono">© <span id="year"></span> Masai Lab · masailab.org</span>
+      <span class="mono">
+        <span data-i18n-en>Status: building</span>
+        <span data-i18n-zh>状态：建设中</span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // theme toggle
+  const themeBtn = document.getElementById('theme-btn');
+  const prefersDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const savedTheme = (() => { try { return localStorage.getItem('masai.theme'); } catch(e) { return null; } })();
+  if (savedTheme === 'light' || savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }
+  themeBtn.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') || (prefersDark() ? 'dark' : 'light');
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('masai.theme', next); } catch(e) {}
+  });
+
+  // language toggle
+  const enBtn = document.getElementById('lang-en');
+  const zhBtn = document.getElementById('lang-zh');
+  function setLang(l) {
+    document.documentElement.setAttribute('lang', l);
+    enBtn.classList.toggle('active', l === 'en');
+    zhBtn.classList.toggle('active', l === 'zh');
+    try { localStorage.setItem('masai.lang', l); } catch(e) {}
+  }
+  const savedLang = (() => { try { return localStorage.getItem('masai.lang'); } catch(e) { return null; } })();
+  if (savedLang === 'zh' || (!savedLang && (navigator.language || '').toLowerCase().startsWith('zh'))) setLang('zh');
+  enBtn.addEventListener('click', () => setLang('en'));
+  zhBtn.addEventListener('click', () => setLang('zh'));
+
+  // reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08, rootMargin: "0px 0px -40px 0px" });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
